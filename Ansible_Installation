@@ -1,0 +1,26 @@
+Setup EC2 iNSTANCE
+Setup hostname
+Create ansadmin user
+Add users to sudoers file
+Generate ssh keys
+Enable password based login
+Install ansible
+
+#init 6 - restart session
+#useradd ansadmin
+#passwd ansadmin
+we need to add this user to sudoers file for that follow below command,
+#vi sudo is the command (I can execute any command with out any password)
+ansadmin   ALL=(ALL)      NOPASSWD: ALL
+We need to enable password based autentication,
+vi /etc/ssh/sshd_config - Enable passwordless authentication should be yes
+we need to create keys for ansadmin user for that follow below steps,
+#ssh-keygen
+#sudo su - ansadmin
+#sudo su -
+#sudo amazon-linux-extras install ansible2
+#ansible --version
+#python --version
+
+Enable passwordless authentication between ansible and tomcatserver
+
