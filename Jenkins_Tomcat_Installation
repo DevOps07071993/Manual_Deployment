@@ -1,0 +1,96 @@
+Setup Linux EC2 Instance
+Install Java
+Install Jenkins
+Start Jenkins
+Access WebUI on port 8080
+
+Launch EC2 Instance
+Install Java and Set path:
+#vi .bash_profile
+#JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.20.0.8-1.amzn2.0.1.x86_64
+#PATH=$PATH:$JAVA_HOME:$HOME/bin
+#source ~/.bash_profile
+Jenkins Redhat Packages
+To use this repository, run the following commands:
+#sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+#sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+#yum install fontconfig java-11-openjdk
+#yum install jenkins -y
+#amazon-linux-extras install epel
+Start Jenkins
+#systemctl status jenkins
+#systemctl start jenkins
+
+Configuration:
+Open default port 8080 in security group
+Configure Java Path under jenkins configuration:
+ManageJenkins-Tools-Add JDK
+
+Maven and Git Installation:
+Download Maven on Jenkins Server (/opt/maven)
+#wget https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz
+#tar -xvzf apache-maven-3.9.4-bin.tar.gz
+Setup M2_HOME and M2 paths in .bash_profile
+M2_HOME=
+M2=
+Install Git
+# yum install git -y
+Check maven version (mvn -version)
+Install Maven and Git plugin:
+Manage Jenkins-Manage plugins-Available-"Maven Invoker" plugin
+Manage Jenkins-Manage plugins-Available-"github" plugin
+Set maven and git path:
+Manage Jenkins-Tools-Maven
+Manage-Jenkins-Tools-Git
+
+Setup Tomcat:
+------------
+Install Apache Tomcat
+Download tomcat packages from https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.80/bin/apache-tomcat-9.0.80.tar.gz onto /opt/tomcat on EC2 instance
+
+# Create tomcat directory
+cd /opt/tomcat
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.80/bin/apache-tomcat-9.0.80.tar.gz
+tar -xvzf /opt/apache-tomcat-<version>.tar.gz
+give executing permissions to startup.sh and shutdown.sh which are under bin.
+chmod +x /opt/apache-tomcat-<version>/bin/startup.sh 
+chmod +x /opt/apache-tomcat-<version>/bin/shutdown.sh
+
+create link files for tomcat startup.sh and shutdown.sh
+ln -s /opt/apache-tomcat-<version>/bin/startup.sh /usr/local/bin/tomcatup
+ln -s /opt/apache-tomcat-<version>/bin/shutdown.sh /usr/local/bin/tomcatdown
+tomcatup
+Check point :
+access tomcat application from browser on port 8080
+
+http://<Public_IP>:8080
+Using unique ports for each application is a best practice in an environment. But tomcat and Jenkins runs on ports number 8080. Hence lets change tomcat port number to 8090. Change port number in conf/server.xml file under tomcat home
+
+cd /opt/apache-tomcat-<version>/conf
+# update port number in the "connecter port" field in server.xml
+# restart tomcat after configuration update
+tomcatdown
+tomcatup
+Check point :
+Access tomcat application from browser on port 8090
+
+http://<Public_IP>:8090
+now application is accessible on port 8090. but tomcat application doesnt allow to login from browser. changing a default parameter in context.xml does address this issue
+#search for context.xml
+find / -name context.xml
+above command gives 3 context.xml files. comment () Value ClassName field on files which are under webapp directory. After that restart tomcat services to effect these changes. At the time of writing this lecture below 2 files are updated.
+/opt/tomcat/webapps/host-manager/META-INF/context.xml
+/opt/tomcat/webapps/manager/META-INF/context.xml
+
+# Restart tomcat services
+tomcatdown  
+tomcatup
+Update users information in the tomcat-users.xml file goto tomcat home directory and Add below users to conf/tomcat-users.xml file
+ <role rolename="manager-gui"/>
+ <role rolename="manager-script"/>
+ <role rolename="manager-jmx"/>
+ <role rolename="manager-status"/>
+ <user username="admin" password="admin" roles="manager-gui, manager-script, manager-jmx, manager-status"/>
+ <user username="deployer" password="deployer" roles="manager-script"/>
+ <user username="tomcat" password="s3cret" roles="manager-gui"/>
+Restart serivce and try to login to tomcat application from the browser. This time it should be Successful
